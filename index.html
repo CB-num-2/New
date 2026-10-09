@@ -1,0 +1,12 @@
+<button onclick="openFixedWindow()">Open Window</button>
+
+<script>
+function openFixedWindow() {
+    // Arguments: URL, Window Name, Features
+    window.open(
+        'https://example.com', 
+        'fixedWindow', 
+        'width=600,height=400,resizable=no,scrollbars=yes'
+    );
+}
+</script>
