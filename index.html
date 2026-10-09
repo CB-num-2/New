@@ -3,27 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Launch PWA</title>
-    <!-- Pointing directly to your custom manifest -->
+    <title>Chromebook PWA</title>
     <link rel="manifest" href="manifest.webjson">
 </head>
 <body>
-    <h1>Offline Fixed PWA</h1>
-    <p>This window launches at 800x600 and respects your manifest settings.</p>
+    <h1>Chromebook PWA Window</h1>
+    <p>This application functions offline and maintains a size of 800x600.</p>
 
     <script>
+        // 1. Force the App Window to snap to 800x600 on ChromeOS
         const TARGET_WIDTH = 800;
         const TARGET_HEIGHT = 600;
 
-        // Snaps window layout if running as an installed app
         if (window.matchMedia('(display-mode: standalone)').matches) {
             window.resizeTo(TARGET_WIDTH, TARGET_HEIGHT);
 
-            // Resizes back if a user tries to alter the dimensions
             window.addEventListener('resize', () => {
                 if (window.innerWidth !== TARGET_WIDTH || window.innerHeight !== TARGET_HEIGHT) {
                     window.resizeTo(TARGET_WIDTH, TARGET_HEIGHT);
                 }
+            });
+        }
+
+        // 2. Register the Chromebook optimized Service Worker 
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered for Chromebook!', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
             });
         }
     </script>
