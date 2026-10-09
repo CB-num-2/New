@@ -4,47 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fixed Launch PWA</title>
-    <!-- Link to the PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    <style>
-        body {
-            font-family: system-ui, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
-        .container {
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-    </style>
+    <!-- Pointing directly to your custom manifest -->
+    <link rel="manifest" href="manifest.webjson">
 </head>
 <body>
-
-    <div class="container">
-        <h1>PWA App Window</h1>
-        <p>This window launches at 800x600 pixels.</p>
-    </div>
+    <h1>Offline Fixed PWA</h1>
+    <p>This window launches at 800x600 and respects your manifest settings.</p>
 
     <script>
-        // Target dimensions
         const TARGET_WIDTH = 800;
         const TARGET_HEIGHT = 600;
 
-        // Check if the app is running as an installed PWA
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-        if (isPWA) {
-            // Resize the window immediately on launch
+        // Snaps window layout if running as an installed app
+        if (window.matchMedia('(display-mode: standalone)').matches) {
             window.resizeTo(TARGET_WIDTH, TARGET_HEIGHT);
 
-            // Optional: Re-enforce size if the user tries to maximize or resize it
+            // Resizes back if a user tries to alter the dimensions
             window.addEventListener('resize', () => {
                 if (window.innerWidth !== TARGET_WIDTH || window.innerHeight !== TARGET_HEIGHT) {
                     window.resizeTo(TARGET_WIDTH, TARGET_HEIGHT);
