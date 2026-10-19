@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* The hidden video feed acting as the background */
+    #fake-transparent-bg {
+      position: absolute;
+      pointer-events: none;
+      z-index: -1;
+      transform-origin: top left;
+    }
+    /* Your actual app content sits on top */
+    #app-content {
+      position: relative;
+      z-index: 1;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      padding: 20px;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="fake-transparent-bg" autoplay playsinline muted></video>
+  
+  <div id="app-content">
+    <h1>My "Transparent" PWA</h1>
+    <p>This content floats over whatever is behind the window!</p>
+  </div>
+
+  <script>
+    const video = document.getElementById('fake-transparent-bg');
+
+    async function startFakeTransparency() {
+      try {
+        // 1. Request full screen capture from the user
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { displaySurface: "monitor" }, // Captures the whole desktop
+          audio: false
+        });
+        
+        video.srcObject = stream;
+
+        // 2. Continuously track the PWA window position and align the background
+        function updateBackgroundPosition() {
+          // Get the window's current X and Y coordinates relative to the screen
+          const windowX = window.screenX || window.screenLeft;
+          const windowY = window.screenY || window.screenTop;
+
+          // Shift the video background in the opposite direction of window movement
+          // This keeps the background imagery perfectly anchored to the desktop coordinates
+          video.style.transform = `translate(${-windowX}px, ${-windowY}px)`;
+
+          requestAnimationFrame(updateBackgroundPosition);
+        }
+
+        // Wait for video metadata to load, then start alignment and scale the video to match the monitor size
+        video.onloadedmetadata = () => {
+          video.style.width = `${screen.width}px`;
+          video.style.height = `${screen.height}px`;
+          updateBackgroundPosition();
+        };
+
+      } catch (err) {
+        console.error("Screen capture denied or failed:", err);
+      }
+    }
+
+    // Start the process (usually triggered by a user click button to comply with browser rules)
+    window.addEventListener('DOMContentLoaded', startFakeTransparency);
+  </script>
+</body>
+</html>
