@@ -5,92 +5,62 @@
     body, html {
       margin: 0; padding: 0;
       width: 100vw; height: 100vh;
-      overflow: hidden; background: transparent;
+      overflow: hidden; background: #000;
     }
-    #canvas-bg {
+    /* Container that clips out the edges */
+    #bg-container {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
+      overflow: hidden;
       z-index: -1;
     }
-    #app-content {
+    /* Shift the video up and scale it to hide the green sharing pill */
+    #fake-bg {
+      position: absolute;
+      top: -40px; /* Adjust this value if the green banner is still partially visible */
+      left: 0;
+      width: 100%;
+      height: calc(100% + 40px); /* Extends the video to account for the top crop */
+      object-fit: cover;
+      pointer-events: none;
+    }
+    #content {
       position: relative;
       z-index: 1;
       color: white;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
       padding: 20px;
       font-family: sans-serif;
-    }
-    .hidden { display: none !important; }
-    button {
-      background: #2563eb; color: white; border: none;
-      padding: 10px 20px; border-radius: 5px; cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <canvas id="canvas-bg"></canvas>
-  
-  <div id="app-content">
-    <button id="capture-btn">Align Background</button>
-    <h1 id="text-element" class="hidden">My "Transparent" PWA</h1>
-    <p id="sub-text" class="hidden">The tunnel loop is broken!</p>
+  <div id="bg-container">
+    <video id="fake-bg" autoplay playsinline muted></video>
+  </div>
+
+  <div id="content">
+    <h1>Clean Tab Mirroring</h1>
+    <p>The green browser sharing banner has been cropped out of view!</p>
   </div>
 
   <script>
-    const btn = document.getElementById('capture-btn');
-    const canvas = document.getElementById('canvas-bg');
-    const ctx = canvas.getContext('2d');
-    
-    // Hidden video element just to process the stream
-    const tempVideo = document.createElement('video');
-    tempVideo.autoplay = true;
-    tempVideo.muted = true;
-
-    btn.addEventListener('click', async () => {
-      // 1. Temporarily hide UI elements so they aren't screenshotted
-      btn.classList.add('hidden');
-      
+    async function setupCleanMirror() {
       try {
         const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: { displaySurface: "monitor" },
+          video: { displaySurface: "browser" },
           audio: false
         });
         
-        tempVideo.srcObject = stream;
-        
-        // 2. Wait a split second for the feed to stabilize
-        tempVideo.onloadedmetadata = () => {
-          setTimeout(() => {
-            // Set canvas size to match match window bounds
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // Calculate coordinates to crop out the exact portion behind your PWA
-            const windowX = window.screenX || window.screenLeft;
-            const windowY = window.screenY || window.screenTop;
-            
-            // 3. Draw ONE frozen snapshot to the canvas background
-            ctx.drawImage(
-              tempVideo, 
-              windowX, windowY, window.innerWidth, window.innerHeight, // Source crop
-              0, 0, window.innerWidth, window.innerHeight // Destination position
-            );
-            
-            // 4. Turn off the camera stream immediately to kill the loop
-            stream.getTracks().forEach(track => track.stop());
-            
-            // 5. Bring your interface text back over the clean image
-            document.getElementById('text-element').classList.remove('hidden');
-            document.getElementById('sub-text').classList.remove('hidden');
-          }, 300); // 300ms delay ensures window elements disappear before snapshot
-        };
+        const video = document.getElementById('fake-bg');
+        video.srcObject = stream;
       } catch (err) {
-        console.error(err);
-        btn.classList.remove('hidden');
+        console.error("Capture rejected:", err);
       }
-    });
+    }
+    
+    window.addEventListener('DOMContentLoaded', setupCleanMirror);
   </script>
 </body>
 </html>
